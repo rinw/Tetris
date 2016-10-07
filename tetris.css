@@ -1,0 +1,21 @@
+body {
+	background-color: #000000;
+}
+
+#board {
+	margin: auto;
+	display: table;
+	border: 1px solid white;
+
+}
+
+.row {	
+}
+
+.cell {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin: 1px;
+}
+
