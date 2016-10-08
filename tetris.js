@@ -37,18 +37,42 @@ var masks = [
 	 'xxx']
 ]
 
-function rotate_mask(mask, r) {
-	// TODO: rotate mask and return it
-	return mask
+function rotated_mask(mask, r) {
+	r = r % 360
+	if (!r) 
+		return mask
+	if (r == 90) {
+		var m = []			
+		for (var mx = 0; mx < mask[0].length; mx++) {
+			var s = ''
+			for (var my = mask.length - 1; my >= 0; my--) {
+				s = s + mask[my][mx]
+			}
+			m.push(s)	
+		}
+		return m		
+	}
+	else if (r == 180) {
+		return rotated_mask(rotated_mask(mask, 90), 90)
+	}
+	else if (r == 270) {
+		return rotated_mask(rotated_mask(rotated_mask(mask, 90), 90), 90)
+	}	
+	assert(false)
+}
+
+function get_mask(p, r) {
+	if (r === undefined)
+		r = p.r
+	var mask = masks[p.type]
+	return rotated_mask(mask, r)
 }
 
 function paint (board, p, color) {
 	if (color === undefined) {
 		color = p.color
 	}
-	var mask = masks[p.type]
-	mask = rotate_mask(mask, p.r)
-	
+	var mask = get_mask(p)	
 	for (var my = 0; my < mask.length; my++) {
 		for (var mx = 0; mx < mask[my].length; mx++) {
 			if (mask[my][mx] == 'x') {
@@ -60,15 +84,15 @@ function paint (board, p, color) {
 	}
 }
 
-function mask_size (type) {
-	var mask = masks[type]
+function piece_size (p, r) {
+	var mask = get_mask(p, r)
 	var w = mask[0].length
 	var h = mask.length
 	return {'width': w, 'height': h }
 }
 
 function inside_board (board, p, x, y, r) {
-	var size = mask_size(p.type)
+	var size = piece_size(p, r)
 	var w = size.width
 	var h = size.height
 	var bw = board[0].length
@@ -76,14 +100,10 @@ function inside_board (board, p, x, y, r) {
 	return x >= 0 && y >= 0 && x <= bw - w && y <= bh - h
 }
 
-var erase = function (board, p) {
-	paint(board, p, false)
-}
-
-var update = function (board, p, x, y, r) {
+function update (board, p, x, y, r) {
 	if(!inside_board(board, p, x, y, r))
 		return
-	erase(board, p)
+	paint(board, p, false) // erase the piece on current position
 	p.x = x 
 	p.y = y
 	p.r = r
@@ -91,7 +111,11 @@ var update = function (board, p, x, y, r) {
 }
 
 //returns true if the piece is on deck, false if it isn't
-var on_deck =  function (p) {}
+
+
+function on_deck (board, p) {
+
+}
 
 var can_move = function (p, x, y, r) {}
 
@@ -103,16 +127,19 @@ var board
 var p 
 var state
 
+function init_piece (size){
+	var type = Math.floor(Math.random() * masks.length)
+	p = {'x': 0, 'y': 0, 'r': 0, 'type': type, 'color': '#ff0000' }	
+	p.x = Math.floor((size.width - piece_size(p).width)/2)
+	paint(board, p)
+}
+
 function restart_game (size) {
 	state = 'running'
 	board = create_board(size)
-	var type = Math.floor(Math.random() * masks.length)
-		console.log(type)
-		console.log(type, mask_size(type))
-	var x = Math.floor((size.width - mask_size(type).width)/2)
-	p = {'x': x, 'y': 0, 'r': 0, 'type': type, 'color': '#ff0000' }
-	paint(board, p)
+	init_piece(size)
 }
+
 
 
 // how : 'left', 'right', 'down', 'rotate'
@@ -178,7 +205,7 @@ function main () {
         	show_move('right')
         else if (e.keyCode == 40) // down arrow 
         	show_move('down')
-        else if (e.keyCode == 32) // space key
+        else if (e.keyCode == 38) // space key
  			show_move('rotate')
     })
 }
