@@ -1,15 +1,29 @@
 body {
 	background-color: #000000;
+	color: #ffffff;
+}
+
+#main {
+	margin: auto;
+	display: table;
+	border: 1px solid white;
 }
 
 #board {
 	margin: auto;
-	display: table;
+	margin-left: 100px;
+	display: inline-block;
 	border: 1px solid white;
 
 }
 
-.row {	
+#next_p {
+	display: inline-block;
+	float: right;
+	min-width: 100px;
+}
+
+.row {
 }
 
 .cell {
