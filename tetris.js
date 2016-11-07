@@ -4,6 +4,15 @@
 // 		type: index in the masks array
 //		color: index in current palette (index 0 means no color)
 
+
+
+
+
+
+
+
+
+
 // **** Game State ****
 
 var board_size = {'width': 15, 'height': 30}
@@ -17,7 +26,21 @@ var score
 var hiscore = localStorage.getItem('hiscore') || 0
 var palette = 'bright ideas'
 
-// **** Game Mechanics **** 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// **** Game Mechanics ****
 
 // create a board line of cells and initialize each cell with 0
 function create_board_line () {
@@ -39,7 +62,7 @@ function create_piece(type, x, y, r, color) {
 	p = {'x': x, 'y': y, 'r': r, 'type': type, 'color': color }
 }
 
-// return the mask of the current piece at a given rotation 
+// return the mask of the current piece at a given rotation
 // (or at current rotation if no rotation is given)
 function piece_mask (p, r) {
 	if (r === undefined)
@@ -47,7 +70,7 @@ function piece_mask (p, r) {
 	return masks[p.type][r / 90]
 }
 
-// return the width and height of a piece mask 
+// return the width and height of a piece mask
 function mask_size (mask) {
 	var w = mask[0].length
 	var h = mask.length
@@ -56,10 +79,10 @@ function mask_size (mask) {
 
 var change_square_color // forward declaration
 
-// fill the board squares corresponding to the current piece's mask 
+// fill the board squares corresponding to the current piece's mask
 // at the piece's position with a color
 function paint_piece (color) {
-	if (color === undefined) 
+	if (color === undefined)
 		color = p.color
 	var mask = piece_mask(p)
 	var size = mask_size(mask)
@@ -68,7 +91,7 @@ function paint_piece (color) {
 			if (mask[my][mx] == 'x') {
 				var x = p.x + mx
 				var y = p.y + my
-				board[y][x] = color 
+				board[y][x] = color
 				change_square_color(x, y, color)
 			}
 		}
@@ -82,7 +105,7 @@ function piece_inside_board (x, y, r) {
 	var w = size.width
 	var h = size.height
 	var bw = board_size.width
-	var bh = board_size.height 
+	var bh = board_size.height
 	return x >= 0 && y >= 0 && x <= bw - w && y <= bh - h
 }
 
@@ -93,13 +116,13 @@ function square_belongs_to_p(x, y) {
 	var size = mask_size(mask)
 	var mx = x - p.x
 	var my = y - p.y
-	return 	mx >= 0 && mx < size.width && 
-			my >= 0 && my < size.height && 
+	return 	mx >= 0 && mx < size.width &&
+			my >= 0 && my < size.height &&
 			mask[my][mx] == 'x'
 }
 
 // check if the current piece can move at (x, y, z), meaning if none of its
-// squares at (x, y, z) intersect a square on the board, excluding the 
+// squares at (x, y, z) intersect a square on the board, excluding the
 // squares of the piece at its current position and rotation.
 function can_move (x, y, r) {
 	if(!piece_inside_board(x, y, r))
@@ -123,10 +146,13 @@ function can_move (x, y, r) {
 // erase a piece at its current position, update its (x, y, r) and paint
 // it again at its new position and rotation.
 function update_piece (x, y, r) {
+	var realx = x
+	var x = Math.floor(x)
 	if(!can_move(x, y, r))
 		return false
 	paint_piece(0) // erase the piece on current position
-	p.x = x 
+	p.realx = realx
+	p.x = x
 	p.y = y
 	p.r = r
 	paint_piece()
@@ -136,17 +162,30 @@ function update_piece (x, y, r) {
 // move or rotate a piece
 // how : 'left', 'right', 'down', 'rotate'
 function move_piece (how) {
+	var x0 = p.realx || p.x
+	var y0 = p.y
 	if (how == 'left') {
-		return update_piece(p.x-1, p.y, p.r)
+		return update_piece(x0-1, y0, p.r)
 	}
 	else if (how == 'right') {
-		return update_piece(p.x+1, p.y, p.r)		
+		return update_piece(x0+1, y0, p.r)
 	}
 	else if (how == 'down') {
-		return update_piece(p.x, p.y+1, p.r)		
+		return update_piece(x0, y0+1, p.r)
 	}
 	else if (how == 'rotate') {
-		return update_piece(p.x, p.y, (p.r + 90) % 360)		
+		var r = (p.r + 90) % 360
+		var mask0 = piece_mask(p)
+		var mask1 = piece_mask(p, r)
+		var w0 = mask_size(mask0).width
+		var w1 = mask_size(mask1).width
+		var x0 = p.realx || p.x
+		var x1 = x0 + (w0 - w1) / 2
+		if (x1 < 0)
+			x1 = 0
+		if (x1 + w1 > board_size.width)
+			x1 = board_size.width - w1
+		return update_piece(x1, p.y, r)
 	}
 }
 
@@ -161,7 +200,7 @@ function is_line_full (y) {
 function erase_line (y) {
 	board.splice(y, 1)
 	var line = []
-	for (var x = 0; x < board_size.width; x++) 
+	for (var x = 0; x < board_size.width; x++)
 		line[x] = 0
 	board.unshift(line)
 }
@@ -169,7 +208,7 @@ function erase_line (y) {
 
 function erase_full_lines () {
 	var	count = 0
-	for (var y = 0; y < board_size.height; y++) 
+	for (var y = 0; y < board_size.height; y++)
 		if (is_line_full(y)) {
 			erase_line(y)
 			count++
@@ -196,7 +235,7 @@ function init_piece() {
 	create_piece(type, 0, 0, r, color)
 	// center the piece horizontally to the board
 	var mask = piece_mask(p)
-	p.x = Math.floor((board_size.width - mask_size(mask).width)/2) 
+	p.x = Math.floor((board_size.width - mask_size(mask).width)/2)
 }
 
 function restart_game () {
@@ -206,6 +245,16 @@ function restart_game () {
 	state = 'running'
 	score = 0
 }
+
+
+
+
+
+
+
+
+
+
 
 // **** Game Interface ****
 
@@ -277,7 +326,7 @@ function draw_score () {
 }
 
 function go (how) {
-	if (state == 'over') 
+	if (state == 'over')
 		return
 	var moved = move_piece(how)
 	if (how == 'down' && !moved) {
@@ -291,23 +340,23 @@ function go (how) {
 		draw_next_p()
 		// move piece outside the board so we can call can_move() on it
 		// because otherwise can_move() will always work
-		p.y = 10 
+		p.y = 10
 		if (can_move(p.x, 0, p.r)) {
 			p.y = 0
 			paint_piece()
-		} else 
+		} else
 			game_over()
 	}
 }
 
 function handle_keydown (e) {
     if (e.keyCode == 37)  // left arrow
-   		go('left') 
+   		go('left')
     else if (e.keyCode == 39) // right arrow
     	go('right')
-    else if (e.keyCode == 40) // down arrow 
+    else if (e.keyCode == 40) // down arrow
     	go('down')
-    else if (e.keyCode == 38) // space key
+    else if (e.keyCode == 38) // up key
 		go('rotate')
 }
 
@@ -317,8 +366,8 @@ function main () {
 	draw_next_p()
 	draw_score()
 	$(document).keydown(handle_keydown)
-	setInterval(function() { 
-		go('down') 
+	setInterval(function() {
+		go('down')
 	}, 1000)
 }
 
